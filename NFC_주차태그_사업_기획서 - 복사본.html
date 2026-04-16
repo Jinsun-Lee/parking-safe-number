@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>NFC 주차 연락 시스템 — 팍씨 (Mr. 박)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --accent: #2563eb;
+    --accent-2: #06b6d4;
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #475569;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .deck { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px; }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    position: relative;
+    overflow: hidden;
+    padding: 56px 72px;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide-num {
+    position: absolute;
+    right: 32px;
+    bottom: 24px;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: .05em;
+  }
+  .brand {
+    position: absolute;
+    left: 72px;
+    bottom: 24px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1.title {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  h2 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--ink);
+  }
+  h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  p, li { font-size: 17px; line-height: 1.6; color: #1f2937; }
+  ul { list-style: none; padding: 0; }
+  ul li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 6px;
+  }
+  ul li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 11px;
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; flex: 1; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+  .card {
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .card.accent { border-left: 4px solid var(--accent); }
+  .card.ok { border-left: 4px solid var(--ok); }
+  .card.warn { border-left: 4px solid var(--warn); }
+  .card.bad { border-left: 4px solid var(--bad); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+    margin-top: 8px;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    background: #f1f5f9;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .flow {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 24px 28px;
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre;
+  }
+  .callout {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 6px;
+    font-size: 17px;
+    margin-top: 12px;
+  }
+  .callout.dark {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-left: 4px solid var(--accent-2);
+  }
+  .risk { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.low { background: var(--ok); }
+  .dot.mid { background: var(--warn); }
+  .dot.high { background: var(--bad); }
+
+  /* Title slide */
+  .cover {
+    background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+    color: #f8fafc;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .cover .tag { color: #67e8f9; }
+  .cover h1.title { color: #fff; font-size: 80px; }
+  .cover .sub { font-size: 24px; color: #cbd5e1; margin-top: 20px; }
+  .cover .meta { margin-top: 60px; color: #94a3b8; font-size: 16px; letter-spacing: .1em; }
+  .cover .slide-num, .cover .brand { color: #94a3b8; }
+
+  /* Section cover */
+  .section-cover {
+    background: #0f172a;
+    color: #f8fafc;
+    justify-content: center;
+  }
+  .section-cover .num {
+    font-size: 20px;
+    color: #67e8f9;
+    letter-spacing: .2em;
+    margin-bottom: 16px;
+  }
+  .section-cover h1.title { color: #fff; font-size: 56px; }
+
+  /* Print */
+  @page {
+    size: 1280px 720px;
+    margin: 0;
+  }
+  @media print {
+    html, body { background: #fff; }
+    .deck { padding: 0; gap: 0; }
+    .slide {
+      box-shadow: none;
+      border-radius: 0;
+      page-break-after: always;
+      break-after: page;
+      width: 1280px;
+      height: 720px;
+    }
+    .slide:last-child { page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- 1. Cover -->
+<section class="slide cover">
+  <div class="tag">Business Plan · 2026</div>
+  <h1 class="title">NFC 주차 연락 시스템<br>팍씨 · Mr. 박</h1>
+  <div class="sub">차량 한 대 = 디지털 ID 하나<br>번호 노출 없는 익명 연결 플랫폼</div>
+  <div class="meta">2026.04.08</div>
+  <div class="brand">Mr. PARK</div>
+</section>
+
+<!-- 2. 개요 -->
+<section class="slide">
+  <div class="tag">01 · Overview</div>
+  <h2>개요 및 기술 과제</h2>
+  <div style="flex:1; display:flex; flex-direction:column; gap:20px;">
+    <div class="card accent">
+      <h3>문제</h3>
+      <ul>
+        <li>주차 차량 앞 전화번호 · 집주소 노출 → 범죄 위험</li>
+        <li>번호 공개 외에는 연락 수단이 없는 현 구조</li>
+      </ul>
+    </div>
+    <div class="card accent">
+      <h3>해결</h3>
+      <ul>
+        <li>NFC 태그로 대체, 랜덤 가상번호로 연결 → 차주 번호 비노출</li>
+        <li>앱으로 NFC 태그 업데이트 가능</li>
+        <li>피싱(결제 유도) 방어 구조 내장</li>
+        <li>아파트 관리용: 등록 차량 여부만 확인 (개인정보 비노출)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">02</div>
+</section>
+
+<!-- 3. 기술 과제 1 -->
+<section class="slide">
+  <div class="tag">02 · Tech</div>
+  <h2>기술 과제 · 핵심 구성 요소 (1/2)</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>익명 전화 연결 (번호 마스킹)</h3>
+      <ul>
+        <li>랜덤 가상번호 발급 및 실제 번호와 매핑하는 서버 구축</li>
+        <li>통신사 API 또는 중계 서비스 연동<br>(네이버 클라우드 Simple&amp;Safe, 카카오 안심번호 API)</li>
+        <li>통화 종료 후 세션 만료 처리</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>NFC 태그 발급 및 관리</h3>
+      <ul>
+        <li>NFC 태그에 고유 UUID 기록 (전화번호 직접 저장 금지)</li>
+        <li>UUID → 가상번호 매핑은 서버에서만 관리</li>
+        <li>앱에서 NFC 태그 재프로그래밍 기능 (NDEF 쓰기)</li>
+        <li>태그 분실·훼손 시 UUID 무효화 및 재발급 플로우</li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">03</div>
+</section>
+
+<!-- 4. 기술 과제 2 -->
+<section class="slide">
+  <div class="tag">02 · Tech</div>
+  <h2>기술 과제 · 핵심 구성 요소 (2/2)</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>피싱 방어</h3>
+      <ul>
+        <li>태그 스캔 시 앱 내부 동작 강제 — 딥링크 + 앱 강제 실행 구조</li>
+        <li>Android App Links / iOS Universal Links 앱 바인딩</li>
+        <li>결제 트리거 차단 — NFC 페이로드 타입 화이트리스트 검증</li>
+        <li>태그 위변조 감지 — 서버 측 HMAC 서명 검증</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>아파트 관리용 인증 태깅기</h3>
+      <ul>
+        <li>관리소 전용 단말기에서 태그 스캔 시 "등록 차량 여부"만 반환</li>
+        <li>차량 등록 DB 연동, 응답은 Yes/No + 동·호수 마스킹</li>
+        <li>관리소 단말기 인증 토큰 별도 발급 (일반 앱과 권한 분리)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">04</div>
+</section>
+
+<!-- 5. 앱 없이 전화 연결 -->
+<section class="slide">
+  <div class="tag">03 · Flow</div>
+  <h2>앱 없이 전화 연결 · 핵심 플로우</h2>
+  <div class="grid-2" style="gap:28px;">
+    <div>
+      <h3>브라우저 기반 (앱 없어도 작동)</h3>
+      <div class="flow">NFC 스캔
+  → 브라우저 자동 실행
+  → https://call.도메인/uuid=a3f9c2
+  → 서버: UUID → 가상번호 조회
+  → [전화 걸기] 버튼 표시
+  → tel:010-XXXX-XXXX 발신
+  → 차주 실제번호로 중계</div>
+      <div class="callout">스마트폰이면 안드로이드 · iOS 상관없이, 앱 없이 작동</div>
+    </div>
+    <div>
+      <h3>피싱 방어</h3>
+      <p style="margin-bottom:10px; color: var(--muted); font-size:15px;">앱 강제 실행 포기 → 서버 검증으로 대체</p>
+      <div class="card bad" style="margin-bottom:10px;">
+        <h4 style="color:var(--bad);">가짜 태그</h4>
+        <p>우리 도메인 아니면 아무것도 없는 페이지</p>
+      </div>
+      <div class="card warn" style="margin-bottom:10px;">
+        <h4 style="color:var(--warn);">URL 위조</h4>
+        <p>HMAC 서명 검증으로 불가</p>
+      </div>
+      <div class="card ok">
+        <h4 style="color:var(--ok);">결제 유도</h4>
+        <p>우리 페이지는 전화버튼 하나뿐</p>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">05</div>
+</section>
+
+<!-- 6. NFC 태그 선택 -->
+<section class="slide">
+  <div class="tag">04 · Hardware</div>
+  <h2>NFC 태그 · 무엇을 살 것인가</h2>
+  <table>
+    <thead>
+      <tr><th style="width:18%;">태그</th><th style="width:22%;">가격</th><th>추천 이유</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>NTAG213</strong></td><td>개당 200~400원</td><td>가장 범용, 안드로이드·iOS 전부 호환, 데모에 충분</td></tr>
+      <tr><td>NTAG215</td><td>개당 400~700원</td><td>용량 큼, 지금 단계엔 불필요</td></tr>
+      <tr><td>NTAG424 DNA</td><td>개당 2,000~4,000원</td><td>동적 서명 가능, 데모엔 오버스펙</td></tr>
+    </tbody>
+  </table>
+  <div class="callout" style="margin-top:18px;">데모는 <strong>NTAG213</strong>으로 충분 · 알리 50개 5~10달러</div>
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card accent">
+      <h4>STEP 1 · 10분</h4>
+      <p>NFC Tools 앱 설치 → URL 쓰기 → 태그에 갖다 대기</p>
+    </div>
+    <div class="card accent">
+      <h4>STEP 2 · 30분</h4>
+      <p>Vercel + 단순 HTML 한 페이지, 전화버튼 하나</p>
+    </div>
+    <div class="card accent">
+      <h4>STEP 3 · 5분</h4>
+      <p>다른 폰으로 스캔 테스트</p>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">06</div>
+</section>
+
+<!-- 7. 피싱 분석 1 -->
+<section class="slide">
+  <div class="tag">05 · Security</div>
+  <h2>NFC 결제 피싱 분석</h2>
+  <div class="grid-2">
+    <div>
+      <div class="card ok" style="margin-bottom:14px;">
+        <h3>패시브 NFC 태그로 결제 불가</h3>
+        <ul>
+          <li>결제 NFC(삼성페이·애플페이)는 완전히 다른 프로토콜</li>
+          <li>POS → 폰에 EMV 명령 → 보안칩 응답 → 생체인증 필수</li>
+          <li>태그는 폰이 읽는 것, 태그가 폰을 제어하는 게 아님</li>
+        </ul>
+      </div>
+      <div class="card bad">
+        <h3>악성 하드웨어 가능성</h3>
+        <ul>
+          <li>PN532 칩(5달러) + 배터리 + 블루투스 → 신용카드 두께 제작 가능</li>
+          <li>Rogue POS 형태로 EMV 명령 전송 시도 가능</li>
+          <li>그러나 보안칩(Secure Element)은 OS 레벨 격리 → 생체인증 없이 결제 불가</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>실제 위협</h3>
+      <table>
+        <thead><tr><th>위협</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>피싱 페이지 유도</td><td>결제처럼 생긴 가짜 페이지로 카드번호 입력 유도</td></tr>
+          <tr><td>딥링크 악용</td><td><code style="font-size:13px;">kakaopay://send?to=XXX&amp;amount=5000</code> URL로 결제앱 실행 + 금액 선입력</td></tr>
+          <tr><td>악성 앱 설치</td><td>APK 다운로드 페이지로 연결</td></tr>
+        </tbody>
+      </table>
+      <div class="callout dark" style="margin-top:18px;">
+        최종 승인은 항상 사용자 생체인증 필요.<br>
+        <strong>사용자가 속아서 직접 인증하는 소셜 엔지니어링이 진짜 위협</strong>
+      </div>
+      <div class="callout" style="margin-top:12px;">
+        대응: 오브젝트에 배터리 공간 없는 구조, 앱에서 능동·수동 NFC 감지
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">07</div>
+</section>
+
+<!-- 8. 투자자 시각 -->
+<section class="slide">
+  <div class="tag">06 · Critical View</div>
+  <h2>투자자 시각 비판적 분석</h2>
+  <div class="grid-2">
+    <div>
+      <h3>핵심 의문</h3>
+      <ul style="font-size:16px;">
+        <li><strong>수익화</strong> · "그냥 번호 써붙이면 되지" 저항 → "번호 털린다"가 핵심 세일즈 포인트</li>
+        <li><strong>B2B vs 개인</strong> · 개인 소비자 먼저, B2B는 순차 공략</li>
+        <li><strong>진입장벽</strong> · 특허보다 브랜드 선점 + 네트워크 효과</li>
+        <li><strong>API 의존</strong> · 초기 네이버 클라우드 임차, 장기 내재화</li>
+        <li><strong>왜 아직 없나</strong> · iOS NFC 개방 2019년, 안심번호 B2C 개방 최근 → 시장 선점 타이밍</li>
+      </ul>
+    </div>
+    <div>
+      <h3>리스크 등급</h3>
+      <table>
+        <thead><tr><th>항목</th><th style="width:40%;">리스크</th></tr></thead>
+        <tbody>
+          <tr><td>기술 구현</td><td><span class="risk"><span class="dot low"></span> 낮음</span></td></tr>
+          <tr><td>수익화</td><td><span class="risk"><span class="dot high"></span> 높음</span></td></tr>
+          <tr><td>경쟁</td><td><span class="risk"><span class="dot high"></span> 높음</span></td></tr>
+          <tr><td>규제</td><td><span class="risk"><span class="dot mid"></span> 중간</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">08</div>
+</section>
+
+<!-- 9. 수익 모델 -->
+<section class="slide">
+  <div class="tag">07 · Revenue</div>
+  <h2>수익 모델</h2>
+  <div class="grid-2">
+    <div>
+      <h3>추천 구조</h3>
+      <div class="flow">태그 키트 3,000원
+  (원가 400원 + 초기 크레딧 포함)
+  → 기본 크레딧 통화 20회 제공
+  → 소진 시 충전 (1,000원 = 20회)
+  → 번호 갱신은 무료</div>
+    </div>
+    <div>
+      <div class="card ok" style="margin-bottom:14px;">
+        <h4 style="color:var(--ok);">단가</h4>
+        <p style="font-size:28px; font-weight:800; color: var(--ok);">3,000원 / 키트</p>
+      </div>
+      <div class="card accent" style="margin-bottom:14px;">
+        <h4>통화 원가</h4>
+        <p style="font-size:28px; font-weight:800; color: var(--accent);">50~100원 / 건</p>
+        <p style="color:var(--muted); font-size:15px; margin-top:4px;">마진 약 50%</p>
+      </div>
+      <div class="callout dark">
+        태그는 <strong>미끼</strong>, <strong>크레딧 충전</strong>이 본진
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">09</div>
+</section>
+
+<!-- 10. B2B 공략 순서 -->
+<section class="slide">
+  <div class="tag">08 · Go-to-Market</div>
+  <h2>B2B 공략 순서</h2>
+  <div style="flex:1; display:flex; flex-direction:column; gap:16px; justify-content:center;">
+    <div class="card accent" style="display:flex; align-items:center; gap:24px;">
+      <div style="font-size:40px; font-weight:800; color:var(--accent); min-width:80px;">1</div>
+      <div>
+        <h3 style="margin:0;">개인 소비자로 트랙션 증명</h3>
+        <p style="color:var(--muted);">실사용 데이터 · 브랜드 인지도 확보</p>
+      </div>
+    </div>
+    <div class="card accent" style="display:flex; align-items:center; gap:24px;">
+      <div style="font-size:40px; font-weight:800; color:var(--accent); min-width:80px;">2</div>
+      <div>
+        <h3 style="margin:0;">주차 관리 솔루션 회사</h3>
+        <p style="color:var(--muted);">파킹클라우드, 하이파킹</p>
+      </div>
+    </div>
+    <div class="card accent" style="display:flex; align-items:center; gap:24px;">
+      <div style="font-size:40px; font-weight:800; color:var(--accent); min-width:80px;">3</div>
+      <div>
+        <h3 style="margin:0;">대형 건설사 브랜드 아파트</h3>
+        <p style="color:var(--muted);">포스코이앤씨(더샵), GS건설(자이), 현대건설(힐스테이트)</p>
+      </div>
+    </div>
+    <div class="card accent" style="display:flex; align-items:center; gap:24px;">
+      <div style="font-size:40px; font-weight:800; color:var(--accent); min-width:80px;">4</div>
+      <div>
+        <h3 style="margin:0;">통신사 · 삼성 — 인수 제안 받는 위치</h3>
+        <p style="color:var(--muted);">목표는 팔리는 자산이 되는 것</p>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">10</div>
+</section>
+
+<!-- 11. 관심 기업/기관 -->
+<section class="slide">
+  <div class="tag">09 · Target Market</div>
+  <h2>관심 기업 · 기관</h2>
+  <div class="grid-4" style="flex:1;">
+    <div class="card">
+      <h4>모빌리티</h4>
+      <ul style="font-size:14px;">
+        <li>쏘카 · 그린카 · 피플카</li>
+        <li>롯데렌탈 · SK렌터카 · 현대캐피탈</li>
+        <li>카카오모빌리티 · 타다 · 아이엠택시</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>건설 · 부동산</h4>
+      <ul style="font-size:14px;">
+        <li>포스코이앤씨</li>
+        <li>GS건설 · 현대건설</li>
+        <li>삼성물산 래미안</li>
+        <li>롯데건설 · DL이앤씨</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>주차 관리</h4>
+      <ul style="font-size:14px;">
+        <li>파킹클라우드</li>
+        <li>하이파킹</li>
+        <li>아마노코리아</li>
+        <li>GS파크24</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>물류</h4>
+      <ul style="font-size:14px;">
+        <li>CJ대한통운</li>
+        <li>쿠팡 로지스틱스</li>
+        <li>한진 · 롯데택배</li>
+        <li>화물맨 · 원바이원</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>보험</h4>
+      <ul style="font-size:14px;">
+        <li>삼성화재 · 현대해상</li>
+        <li>KB손해보험</li>
+        <li>캐롯손보</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>공공기관</h4>
+      <ul style="font-size:14px;">
+        <li>국토교통부 · 경찰청</li>
+        <li>한국도로공사</li>
+        <li>각 지자체</li>
+        <li>한국교통안전공단</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>제조사</h4>
+      <ul style="font-size:14px;">
+        <li>현대 · 기아차</li>
+        <li>삼성전자</li>
+        <li>LG전자</li>
+      </ul>
+    </div>
+    <div class="card" style="background: #0f172a; color:#f1f5f9; border:none;">
+      <h4 style="color:#67e8f9;">렌터카 시장 규모</h4>
+      <div style="font-size:13px; line-height:1.8; color:#cbd5e1;">
+        카셰어링 · 4만대<br>
+        장기렌터 · 100만대<br>
+        단기렌터 · 20만대<br>
+        법인차량 · 50만대<br>
+        <strong style="color:#fff;">합계 174만대</strong><br>
+        <strong style="color:#67e8f9;">≈ 52억 HW 시장</strong>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">11</div>
+</section>
+
+<!-- 12. 톨게이트 분석 -->
+<section class="slide">
+  <div class="tag">10 · Strategy</div>
+  <h2>톨게이트 분석 · 병목 장악</h2>
+  <div class="grid-2">
+    <div>
+      <h3>핵심 인사이트</h3>
+      <ul>
+        <li>톨게이트의 본질 = "통과하지 않으면 안 되는 지점" 장악</li>
+        <li>하이패스 = 굳이? 했는데 한 번 쓰면 못 돌아감 → 대안이 생기면 행동이 바뀜</li>
+        <li>우리 목표 = <strong>차량 연락의 병목</strong> 선점</li>
+      </ul>
+    </div>
+    <div>
+      <h3>표준이 되기 위한 조건</h3>
+      <div class="card accent" style="margin-bottom:10px;">
+        <h4>1. 먼저 깔려야 함</h4>
+        <p>보급 속도가 전부</p>
+      </div>
+      <div class="card accent" style="margin-bottom:10px;">
+        <h4>2. 개방형으로 보여야 함</h4>
+        <p>"우리 앱 없어도 됨"</p>
+      </div>
+      <div class="card accent">
+        <h4>3. API 개방</h4>
+        <p>제조사가 경쟁자가 아닌 파트너가 되도록</p>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">12</div>
+</section>
+
+<!-- 13. 특허 및 해자 -->
+<section class="slide">
+  <div class="tag">11 · Moat</div>
+  <h2>특허 및 해자 전략</h2>
+  <div class="grid-2">
+    <div>
+      <h3>특허 방향</h3>
+      <ul>
+        <li>기술 특허보다 <strong>방법 특허</strong> (프로세스 보호)</li>
+        <li>NFC 태그 기반 익명 차량 연락 시스템</li>
+        <li>주차 태그 위변조 감지 방법</li>
+        <li>관리소 차량 인증 시스템의 개인정보 최소화 방법</li>
+      </ul>
+    </div>
+    <div>
+      <h3>진짜 해자</h3>
+      <div class="card ok" style="margin-bottom:8px;"><h4 style="color:var(--ok);">1. 네트워크 효과</h4><p>스캔하는 사람 → 자기도 태그 구매</p></div>
+      <div class="card ok" style="margin-bottom:8px;"><h4 style="color:var(--ok);">2. 데이터</h4><p>주차 분쟁 패턴 → 보험사·관리업체 가치</p></div>
+      <div class="card ok" style="margin-bottom:8px;"><h4 style="color:var(--ok);">3. 브랜드 선점</h4><p>"주차 NFC = 이 브랜드"</p></div>
+      <div class="card ok"><h4 style="color:var(--ok);">4. 아파트 단지 계약 잠금</h4><p>교체 비용 발생</p></div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">13</div>
+</section>
+
+<!-- 14. 차 1대, 운전자 2명 -->
+<section class="slide">
+  <div class="tag">12 · Product</div>
+  <h2>차 1대 · 운전자 2명 해결</h2>
+  <div class="grid-2">
+    <div>
+      <div class="flow">태그 (UUID)
+  ↓
+차량 프로필
+  ├── 주 운전자 (항상 연락)
+  ├── 부 운전자 1
+  └── 부 운전자 2</div>
+    </div>
+    <div>
+      <div class="card accent" style="margin-bottom:12px;">
+        <h4>연락 우선순위</h4>
+        <p>동시 · 순차 · 시간대별 발신</p>
+      </div>
+      <div class="card accent" style="margin-bottom:12px;">
+        <h4>"지금 내가 운전 중" 토글</h4>
+        <p>앱 내 간단한 스위치로 현재 운전자 지정</p>
+      </div>
+      <div class="card accent">
+        <h4>법인차 대응</h4>
+        <p>관리자가 드라이버 풀 등록 → 당일 배정자 자동 연결</p>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">14</div>
+</section>
+
+<!-- 15. 역방향 플로우 -->
+<section class="slide">
+  <div class="tag">13 · Reverse Flow</div>
+  <h2>차주가 전화를 걸어야 할 때</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>방법 1</h4>
+      <h3>내 태그 스캔 → 앱 → 위치 알림</h3>
+      <ul>
+        <li>앱에서 "내 차 위치 알림 보내기"</li>
+        <li>GPS 기반 주변 차량에 푸시</li>
+      </ul>
+    </div>
+    <div class="card accent">
+      <h4 style="color:var(--accent);">방법 2 · 더 중요</h4>
+      <h3>번호판으로 익명 연결</h3>
+      <ul>
+        <li>앱에서 상대 번호판 입력</li>
+        <li>서버에서 UUID 조회 → 익명 연결</li>
+        <li><strong>태그 없는 차량도</strong> 번호판으로 연결 가능</li>
+        <li>보급률 0%여도 서비스 가능 → 태그 도입 동기 생성</li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">15</div>
+</section>
+
+<!-- 16. 장기 로드맵 -->
+<section class="slide">
+  <div class="tag">14 · Roadmap</div>
+  <h2>장기 로드맵</h2>
+  <div class="grid-2" style="gap:32px;">
+    <div>
+      <div class="flow" style="font-size:14px; line-height:1.8;">지금   · 태그 팔고 통화 중계
+  ↓
+중기   · 차량 연락 표준 플랫폼
+  ↓
+장기   · 차량 ID 플랫폼
+         연락 / 주차비 정산
+         사고 당사자 연결
+         보험 연동 / 차량 인증
+  ↓
+최종   · 물류 시장
+         택배 차량 이중주차 민원
+         화물차 하역 지연 연락
+         배달 오토바이 소속 확인
+         쿠팡 · CJ대한통운 API</div>
+    </div>
+    <div style="display:flex; flex-direction:column; justify-content:center;">
+      <div class="tag" style="color:var(--accent-2);">ENDGAME</div>
+      <div style="background:#0f172a; color:#f1f5f9; padding:28px; border-radius:12px;">
+        <p style="font-size:22px; line-height:1.5; margin-bottom:16px;">
+          차량 한 대 = <strong style="color:#67e8f9;">디지털 ID 하나</strong>
+        </p>
+        <p style="font-size:18px; color:#cbd5e1; margin-bottom:20px;">
+          번호판청 다음으로 차량 정보를 가진 민간 플랫폼
+        </p>
+        <div style="border-top:1px solid #334155; padding-top:16px;">
+          <p style="font-size:15px; color:#94a3b8;">국내 등록차량 2,500만대 × 3,000원</p>
+          <p style="font-size:32px; font-weight:800; color:#67e8f9;">≈ 750억 시장</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">16</div>
+</section>
+
+<!-- 17. 주차 로봇 위협 -->
+<section class="slide">
+  <div class="tag">15 · Threat Analysis</div>
+  <h2>주차 로봇 위협 분석</h2>
+  <div class="grid-2">
+    <div>
+      <div class="card warn" style="margin-bottom:14px;">
+        <h3>위협 맞음, 그러나</h3>
+        <ul>
+          <li>로봇 주차 커버리지 · 신축 스마트 주차장, 대형 건물 전용</li>
+          <li>골목 이중주차, 구축 아파트, 빌라 밀집 지역 = 10~20년 후에도 그대로</li>
+          <li>로봇이 커버하는 건 전체 주차 문제의 <strong>5% 미만</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>더 중요한 관점</h3>
+      <div class="callout dark">
+        "의미 없어도 붙이고 다닌다"<br><br>
+        에어팟 케이스 스티커처럼<br>
+        기능을 넘어 <strong style="color:#67e8f9;">아이덴티티</strong>가 되면 대체 불가
+      </div>
+      <div class="callout" style="margin-top:14px;">
+        오히려 로봇 주차장에도 <strong>차량 ID 인증용</strong>으로 태그 부착 가능
+      </div>
+    </div>
+  </div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">17</div>
+</section>
+
+<!-- 18. Closing -->
+<section class="slide cover">
+  <div class="tag">Thank You</div>
+  <h1 class="title">차량 한 대 =<br>디지털 ID 하나</h1>
+  <div class="sub" style="margin-top:24px;">팍씨 · Mr. 박</div>
+  <div class="meta">NFC 주차 연락 시스템 · 2026</div>
+  <div class="brand">Mr. PARK</div>
+  <div class="slide-num">18</div>
+</section>
+
+</div>
+</body>
+</html>
