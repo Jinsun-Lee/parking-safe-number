@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>지능으로 여는 문, 진흥으로 가는 길</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #334155;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .deck { display: flex; justify-content: center; padding: 24px; }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    background: linear-gradient(160deg, #1e1b4b 0%, #312e81 35%, #b45309 85%, #fbbf24 120%);
+    color: #f8fafc;
+    border-radius: 8px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    position: relative;
+    overflow: hidden;
+    padding: 80px 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .horizon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 180px;
+    background: linear-gradient(180deg, rgba(251, 191, 36, 0) 0%, rgba(251, 191, 36, .25) 60%, rgba(251, 191, 36, .55) 100%);
+    pointer-events: none;
+  }
+  .path {
+    position: absolute;
+    left: 50%;
+    bottom: -40px;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 220px;
+    background: linear-gradient(180deg, rgba(253, 230, 138, 0) 0%, rgba(253, 230, 138, .35) 80%, rgba(253, 230, 138, .6) 100%);
+    clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%);
+    opacity: .75;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fde68a;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .lead {
+    font-size: 22px;
+    color: #e0e7ff;
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 36px;
+    position: relative;
+  }
+  .lead strong { color: #fff; font-weight: 700; }
+  .slogan {
+    font-size: 88px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    position: relative;
+  }
+  .slogan .hl { color: #fde68a; }
+  .rule {
+    width: 80px;
+    height: 3px;
+    background: #fde68a;
+    margin: 40px 0 26px;
+    position: relative;
+  }
+  .closing {
+    font-size: 20px;
+    color: #f5f3ff;
+    line-height: 1.6;
+    font-weight: 500;
+    position: relative;
+  }
+  .closing strong { color: #fde68a; font-weight: 700; }
+  .brand {
+    position: absolute;
+    left: 96px;
+    bottom: 32px;
+    font-size: 12px;
+    color: rgba(253, 230, 138, .7);
+    letter-spacing: .25em;
+    font-weight: 600;
+  }
+  .slide-num {
+    position: absolute;
+    right: 40px;
+    bottom: 32px;
+    font-size: 13px;
+    color: rgba(253, 230, 138, .7);
+    letter-spacing: .15em;
+    font-variant-numeric: tabular-nums;
+  }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    html, body { background: #fff; }
+    .deck { padding: 0; }
+    .slide { box-shadow: none; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+  <section class="slide">
+    <div class="horizon"></div>
+    <div class="path"></div>
+    <div class="tag">KOREA · 한국산업부흥해라</div>
+    <p class="lead">
+      문 앞에서 망설이는 당신께.<br>
+      그 문은, <strong>이미 당신을 위해 열려 있습니다.</strong>
+    </p>
+    <div class="slogan">
+      <span class="hl">지능</span>으로 여는 문,<br>
+      <span class="hl">진흥</span>으로 가는 길.
+    </div>
+    <div class="rule"></div>
+    <p class="closing">
+      혼자 가는 길이 아닙니다. <strong>대한민국이 함께 걷습니다.</strong>
+    </p>
+    <div class="brand">MR. PARK · KOREA</div>
+    <div class="slide-num">FIN</div>
+  </section>
+</div>
+</body>
+</html>
